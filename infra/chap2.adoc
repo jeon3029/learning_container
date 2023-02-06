@@ -38,6 +38,7 @@ $ vi Vagrantfile # 설정 파일 수정
   config.vm.box = "sysnet4admin/CentOS-k8s"
 $ vagrant up
 ----
+
 image::{image-url1}[vagrant설치,800]
 
 * Virtualbox 설치
@@ -45,6 +46,7 @@ image::{image-url1}[vagrant설치,800]
 ** https://www.virtualbox.org
 
 * 명령어 수행 이후 CentOS 설치  확인
+
 image::{image-url2}[virtualbox,800]
 
 .centos 접속
