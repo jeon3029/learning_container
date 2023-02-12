@@ -1,0 +1,60 @@
+= 03.Kubernetes
+:reproducible:
+:listing-caption: Source
+:source-highlighter: rouge
+:rouge-style: monokai
+:toc:
+:hardbreaks:
+// :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
+
+컨테이터 인프라 환경::
+리눅스 운영체제의 커널 하나에서 여러개의 컨테이너가 격리된 상태로 실행되는 인프라 환경
+
+* 눈송이서버 방지
+* 가상화 환경에서는 각각 가상머신이 모두 독립 운영체제커널 가지는데 반해 컨테이너는 OS 커널 하나에 여러개가 격리된 형태로 실행 됨
+
+구글이 Borg 를 기반으로한 Kubernetes 를 오픈소스화 하면서 인프라 환경을 효율적으로 관리 할 수 있게 됨. -> 사실상 인프라 관리기술의 표준 기술
+
+== 3.1 쿠버네티스 이해하기
+
+Kubernetes 는 컨테이너 오케스트레이션을 위한 솔루션
+
+* 복잡한 단계를 관리하고 요소들의 유기적인 관계를 미리 정의하여 손쉽게 사용하도록 서비스를 제공
+
+.기타 orchestration 기술 들
+. 도커 스웜(Doker Swarm)
+. 메소스(Meses)
+. 노매드(Nomad)
+. 쿠버네티스(Kubernetes)
+.. 컨테이너 오케스트레이션을 한다면 k8s 를 우선적으로 고려
+
+=== k8s 구성 방법
+
+. 퍼플릭 클라우드 업체 관리형 k8s 사용(EKS, AKS, GKE)
+. 설치형 k8s 사용(Rancher, OpenShift)
+.. 유료임
+. k8s 클러스터 자동 구성 솔루션 사용(kubeadm, kops, KRIB, kubespray)
+.. 책에서는 `kubeadmin` 을 사용하여 구성
+.. 설치되는 환경을 `Vagrant` 로 자동화하여 테스트 환경을 재구성 할 수 있게 함
+
+=== k8s 구성하기
+
+
+
+
+
+
+== 3.2 쿠버네티스 기본 사용법 배우기
+
+== 3.3 쿠버네티스 연결을 담당하는 서비스
+
+
+== 3.4 알아두면 쓸모 있는 쿠버네티스 오브젝트
+
+
+
+
+
+== References
+
+image:https://img.shields.io/badge/-Reference%20github-black?style=flat-square&logo=github&link=https://github.com/sysnet4admin/_Book_k8sInfra[github-li] https://github.com/sysnet4admin/_Book_k8sInfra[컨테이너 인프라 환경 구축을 위한 쿠버네티스/도커]
