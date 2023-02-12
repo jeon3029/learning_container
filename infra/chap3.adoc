@@ -5,6 +5,8 @@
 :rouge-style: monokai
 :toc:
 :hardbreaks:
+:sourcedir: ./book/ch3/
+
 // :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
 
 컨테이터 인프라 환경::
@@ -39,8 +41,35 @@ Kubernetes 는 컨테이너 오케스트레이션을 위한 솔루션
 
 === k8s 구성하기
 
+.3.1.3 Vagrantfile
+[source,sh]
+----
+include::{sourcedir}3.1.3/Vagrantfile[]
+----
 
+.3.1.3 config.sh
+[source,sh]
+----
+include::{sourcedir}3.1.3/config.sh[]
+----
 
+.3.1.3 install_pkg.sh
+[source,sh]
+----
+include::{sourcedir}3.1.3/install_pkg.sh[]
+----
+
+.3.1.3 master_node.sh
+[source,sh]
+----
+include::{sourcedir}3.1.3/master_node.sh[]
+----
+
+.3.1.3 work_nodes.sh
+[source,sh]
+----
+include::{sourcedir}3.1.3/work_nodes.sh[]
+----
 
 
 
