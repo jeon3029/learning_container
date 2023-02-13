@@ -6,6 +6,8 @@
 :toc:
 :hardbreaks:
 :sourcedir: ./book/ch3/
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_2.png
 
 // :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
 
@@ -90,8 +92,78 @@ kube-system   kube-proxy-nkqh8                          1/1     Running   0     
 kube-system   coredns-66bff467f8-gnq59                  1/1     Running   0          14m
 kube-system   coredns-66bff467f8-p9t7t                  1/1     Running   0          14m
 ----
+=== kubernetes 구성 요소
 
-=== kubectl
+image::{image-url1}[구성요소,700]
+
+.0.kubectl
+클러스터에 명령을 내리는 역할, 마스터노드에 있을 필요는 없음
+
+.1.API 서버
+클러스터 중심 역할을 하는 통로. 주로 상태값을 저장하는 etcd 와 통신, 그밖에 요소들도 API 서버를 중심에 두고 통신
+
+.2.etcd
+구성요소들의 상태값이 모두 저장되는 곳. etcd의 정보만 백업되어 있다면 긴급한 장애 상황에서도 복구 가능. key-value 저장소이므로 복제해서 여러곳에 저장해 두면 하나의 etcd에서 장애가 나도 가용성 확보 가능
+
+.3.컨트롤러 매니저
+k8s 클러스터의 오브젝트 상태 관리. 예를들어 워커 노드에서 통신이 되지 않는 경우 상태 체크와 복구는 컨트롤러 매니저에서 이루어 짐.
+
+.4.스케줄러
+노드의 상태와 자원, 레이블, 요구조건을 고려해 pod 를 어떤 노드에 생성할 것인지 결정하고 할당함
+
+.5.kebelet
+pod 의 구성내용을 받아서 컨테이너 런타임으로 전달하고 정상적으로 작동하는지 모니터링
+
+.6.컨테이너 런타임(CRI)
+컨테이너의 실행을 담당. 다양한 종류의 컨테이너가 문제없이 작동하게 만드는 인터페이스
+
+.7.파드(Pod)
+한 개 이상의 컨테이너로 단일 목적의 일을 하기 위해서 모인 단위. 웹서버 역할, 로그나 데이터 분석 등... pod 는 `언제라도 죽을 수 있는 존재`. 처음에는 이해하기 어려운 부분. 언제라도 죽을 수 있다고 가정하고 디자인되어 있음.
+
+.11.네트워크 플러그인
+클러스터의 통신을 위해서 플러그인을 선택하고 구성. 여기서는 캘리코(Calico)를 선택
+
+.12.CoreDNS
+클라우드 네이티브 컴퓨팅 재단에서 보증하는 프로젝트로 빠르고 유연한 DNS 서버. 클러스터에서 도메인 이름을 이용해 통신하는 데에 사용. 실무에서 IP 보다 도메인 네임으로 편리하게 관리하게 끔 CoreDNS 를 사용함. https://coredns.io 참고
+
+=== 사용자가 pod 에 접근 할 때
+
+. kube-proxy
+.. 통신할 수 있는 네트워크를 설정. `br_netfilter`, `iptables` 사용.
+.. `config.sh` 참고
+. pod
+.. 이미 배포된 pod 에 접속하고 필요한 내용을 전달받음. 어느 워크도드에 위치하는 지 신경쓰지 않아도 됨.
+
+== pod 의 생명주기 및 구성요소
+
+
+image::{image-url2}[pod 의 생명주기 및 구성요소,700] 
+
+. kubectl을 통해 api 서버에 파드 생성을 요청
+
+. (업데이트가 있을 때 마다) api 서버에 전달된 내용이 있으면 api 서버는 etcd에 전달된 내용을 모두 기록해 클러스터의 상태 값을 최신으로 유지한다. 따라서 각 요소가 상태를 업데이트 할 때마다 모두 api 서버를 통해 etcd에 기록된다.
+
+. api 서버에 파드 생성이 요청된 것을 컨트롤러 매니저가 인지하면 컨트롤러 매니저는 파드를 생성하고, 이 상태를 api 서버에 전달한다. 참고로 아직 어떤 워커 노드에 파드를 적용할지는 결정되지 않은 상태로 파드만 생성된다.
+
+. api 서버에 파드가 생성됐다는 정보를 스케줄러가 인지한다. 스케줄러는 생성된 파드를 어떤 워커 노드에 적용할지 조건을 고려해 결정하고 해당 워커 노드에 파드를 띄우도록 요청한다.
+
+. api 서버에 전달된 정보대로 지정한 워커 노드에 파드가 속해 있는지 스케줄러가 kubelet으로 확인
+
+. kubelet에서 컨테이너 런타임으로 파드 생성 요청
+
+. 파드 생성
+
+. 파드 사용 가능한 상태가 된다.
+
+====
+* k8s 는 구조가 아닌 선언적인 시스템 구조를 가지고 있음
+** 추구하는 상태를 선언하면 현재 상태와 맞는지 점검하고 맞추려고 노력 하는 구조
+====
+
+=== 각 구성요소 살펴보기
+
+
+==== kubectl
 
 kubectl 은 꼭 마스터 노드에 위치할 필요는 없음
 [source,sh]
@@ -118,10 +190,10 @@ w3-k8s   Ready    <none>   9m46s   v1.18.4
 [root@w3-k8s ~]# 
 ----
 
-API 서버의 접속정보를 가져와서 nodes 의 위치를 파악하도록 함.
+worker 노드에서 API 서버의 접속정보를(`admin.conf`) 가져와서 nodes 의 위치를 파악하도록 함.
 
 
-=== kubelet
+==== kubelet
 
 파드의 생성과 상태관리, 복구 등을 담당하는 매우 중요한 요소
 
@@ -157,15 +229,126 @@ nginx-pod   0/1     Terminating   0          4m10s
 No resources found in default namespace.
 ----
 
-kubelet 에 문제가 생기면 pods 가 제대로 관리되지 않음
+kubelet 에 문제가 생기면(`systemctl stop kubelet`) pods 가 제대로 관리되지 않음
 
 === kube-proxy
 
-파드의 통신을 담당. 
+파드의 통신을 담당. kube-proxy에 문제가 생긴다면?
 
 
+
+[source,sh]
+----
+[root@m-k8s ~]#  kubectl create -f ~/_Book_k8sInfra/ch3/3.1.6/nginx-pod.yaml 
+Error from server (AlreadyExists): error when creating "/root/_Book_k8sInfra/ch3/3.1.6/nginx-pod.yaml": pods "nginx-pod" already exists
+[root@m-k8s ~]# kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+nginx-pod   1/1     Running   0          11m
+[root@m-k8s ~]# kubectl get pod -o wide
+NAME        READY   STATUS    RESTARTS   AGE   IP             NODE     NOMINATED NODE   READINESS GATES
+nginx-pod   1/1     Running   0          11m   172.16.132.2   w3-k8s   <none>           <none>
+
+# 환경 w3 로 변경
+[root@w3-k8s ~]# modprobe -r br_netfilter
+[root@w3-k8s ~]# systemctl restart network
+
+
+# 환경 main 으로 변경
+[root@m-k8s ~]# curl -I 172.16.132.2
+[root@w3-k8s ~]# 
+# kybe-proxy 문제가 되면 실행 안되는 것을 알 수 있음
+
+# 환경 w3 로 변경
+[root@w3-k8s ~]# modprobe br_netfilter
+[root@w3-k8s ~]# reboot
+
+# 환경 main 으로 변경
+[root@m-k8s ~]# kubectl get pod -o wide
+NAME        READY   STATUS    RESTARTS   AGE   IP             NODE     NOMINATED NODE   READINESS GATES
+nginx-pod   1/1     Running   1          15m   172.16.132.3   w3-k8s   <none>           <none>
+# `RESTARTS` 1로 변경 및 ip 변경 등 확인
+
+[root@m-k8s ~]# curl -I 172.16.132.3 
+HTTP/1.1 200 OK
+Server: nginx/1.23.3
+Date: Mon, 13 Feb 2023 04:41:30 GMT
+Content-Type: text/html
+Content-Length: 615
+Last-Modified: Tue, 13 Dec 2022 15:53:53 GMT
+Connection: keep-alive
+ETag: "6398a011-267"
+Accept-Ranges: bytes
+# 정상 확인
+
+[root@m-k8s ~]# kubectl delete -f ~/_Book_k8sInfra/ch3/3.1.6/nginx-pod.yaml 
+pod "nginx-pod" deleted
+[root@m-k8s ~]# 
+# 삭제
+----
 
 == 3.2 쿠버네티스 기본 사용법 배우기
+
+=== pod 생성 방법
+
+[source,sh]
+----
+[root@m-k8s ~]# kubectl run nginx-pod --image=nginx
+pod/nginx-pod created
+[root@m-k8s ~]# kubectl get pod
+NAME        READY   STATUS    RESTARTS   AGE
+nginx-pod   1/1     Running   0          9s
+
+
+[root@m-k8s ~]# kubectl create nginx --image=nginx
+Error: unknown flag: --image
+See 'kubectl create --help' for usage.
+[root@m-k8s ~]# 
+----
+
+.create 와 run 의 차이?
+create 로 생성하려면 deployment 를 추가해서 실행해야 함.
+기존 nginx 와 중복을 피하고자 dpy-nginx 로 지정해 생성
+
+[source,sh]
+----
+[root@m-k8s ~]# kubectl create deployment dpy-nginx --image=nginx
+deployment.apps/dpy-nginx created
+[root@m-k8s ~]# kubectl get pod
+NAME                       READY   STATUS              RESTARTS   AGE
+dpy-nginx-c8d778df-cbhxs   0/1     ContainerCreating   0          5s
+nginx-pod                  1/1     Running             0          2m38s
+----
+
+생성된 pod 정상 확인
+[source,sh]
+----
+nginx-pod                  1/1     Running             0          2m38s
+[root@m-k8s ~]# kubectl get pods -o wide
+NAME                       READY   STATUS    RESTARTS   AGE     IP               NODE     NOMINATED NODE   READINESS GATES
+dpy-nginx-c8d778df-cbhxs   1/1     Running   0          73s     172.16.221.129   w1-k8s   <none>           <none>
+nginx-pod                  1/1     Running   0          3m46s   172.16.132.4     w3-k8s   <none>           <none>
+[root@m-k8s ~]# curl -I 172.16.221.129
+HTTP/1.1 200 OK
+Server: nginx/1.23.3
+Date: Sun, 12 Feb 2023 21:46:12 GMT
+Content-Type: text/html
+Content-Length: 615
+Last-Modified: Tue, 13 Dec 2022 15:53:53 GMT
+Connection: keep-alive
+ETag: "6398a011-267"
+Accept-Ranges: bytes
+
+[root@m-k8s ~]# curl -I 172.16.132.4
+HTTP/1.1 200 OK
+Server: nginx/1.23.3
+Date: Mon, 13 Feb 2023 04:47:52 GMT
+Content-Type: text/html
+Content-Length: 615
+Last-Modified: Tue, 13 Dec 2022 15:53:53 GMT
+Connection: keep-alive
+ETag: "6398a011-267"
+Accept-Ranges: bytes
+----
 
 == 3.3 쿠버네티스 연결을 담당하는 서비스
 
