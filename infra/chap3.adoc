@@ -8,6 +8,10 @@
 :sourcedir: ./book/ch3/
 :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
 :image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_2.png
+:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_3.png
+:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_4.png
+:image-url5: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_5.png
+:image-url6: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_6.png
 
 // :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/infra/img/img3_1.png
 
@@ -111,7 +115,7 @@ k8s 클러스터의 오브젝트 상태 관리. 예를들어 워커 노드에서
 .4.스케줄러
 노드의 상태와 자원, 레이블, 요구조건을 고려해 pod 를 어떤 노드에 생성할 것인지 결정하고 할당함
 
-.5.kebelet
+.5.kubelet
 pod 의 구성내용을 받아서 컨테이너 런타임으로 전달하고 정상적으로 작동하는지 모니터링
 
 .6.컨테이너 런타임(CRI)
@@ -320,6 +324,7 @@ nginx-pod                  1/1     Running             0          2m38s
 ----
 
 생성된 pod 정상 확인
+
 [source,sh]
 ----
 nginx-pod                  1/1     Running             0          2m38s
@@ -350,14 +355,117 @@ ETag: "6398a011-267"
 Accept-Ranges: bytes
 ----
 
+* run 으로 실행된 pod 는 단일 pod, create deployment 로 실행된 pod 는 관리그룹 내에서 pod 가 생성됨
+
+=== 오브젝트
+
+pod 와 deployment 는 스펙과 상태를 가지고 있음. 개별 속성을 포함해 부르는 단위를 오브젝트라고 함.
+
+.기본오브젝트 image:2023-02-26T08-14%3A43-539Z.png[] 
+* 파드
++
+쿠버네티스에서 실행되는 최소 단위. 독립적인 공간과 사용 가능한 IP를 가지고 있음. 하나의 파드는 1개 이상의 컨테이너를 갖고 있기 때문에 여러 기능을 묶어 하나의 목적으로 사용할 수 있음. 그러나 대부분 1개의 파드에 1개의 컨테이너를 적용함
+* 네임스페이스
++ 
+쿠버네티스 클러스터에서 사용되는 리소스들을 구분해 관리하는 그룹. 특별히 지정하지 않으면 기본으로 할당되는 default, 쿠버네티스 시스템에서 사용되는 kube-system, 외부에서 쿠버네티스 클러스터 내부로 접속하게 도와주는 컨테이너들이 속해있는 metallb-system 등이 있음
+* 볼륨
++ 
+파드가 생성될 때 파드에서 사용할 수 있는 디렉터리를 제공하지만 파드가 사라지더라도 저장과 보존이 가능한 디렉터리를 볼륨 오브젝트를 통해 생성하고 사용할 수 있음.
+* 서비스
++ 
+파드 접속을 안정적으로 유지하도록 서비스를 통해 내/외부로 연결됨. 기존 인프라에서 로드밸런서, 게이트웨이와 비슷한 역할을 함
+
+image::{image-url3}[기본오브젝트,700]
+
+.디플로이먼트
+효율적으로 작동하도록 기능들을 조합하고 추가해 구현한 것
+* 쿠버네티스에서 가장 많이 쓰는 디플로이먼트 구조는 파드에 기반을 두며 레플리카셋과 오브젝트를 합쳐놓은 형태
+* 실제로 API 서버와 컨트롤러 매너저는 파드가 생성되는 것을 감시하는 것이 아니라, 디플로이먼트처럼 레플리카 셋을 포함하는 오브젝트의 생성을 감시한다.
+
+image::{image-url4}[700]
+image::{image-url5}[700]
+
+
+=== 스펙 지정해서 오브젝트 생성
+
+.스펙지정
+[source,sh]
+----
+include::{sourcedir}3.2.4/echo-hname.yaml[]
+----
+
+.실습
+[source,sh]
+----
+[root@m-k8s ~]# kubectl create -f ~/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml 
+deployment.apps/echo-hname created
+[root@m-k8s ~]# kubectl get pods
+NAME                        READY   STATUS              RESTARTS   AGE
+echo-hname-7894b67f-f7vml   0/1     ContainerCreating   0          6s
+echo-hname-7894b67f-jxhkf   0/1     ContainerCreating   0          6s
+echo-hname-7894b67f-t6m86   0/1     ContainerCreating   0          6s
+nginx-pod                   1/1     Running             0          10m
+[root@m-k8s ~]# sed -i 's/replicas: 3/replicas: 6/' ~/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml 
+[root@m-k8s ~]# cat ~/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml  | grep replicas
+  replicas: 6
+[root@m-k8s ~]# kubectl create -f ~/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml 
+Error from server (AlreadyExists): error when creating "/root/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml": deployments.apps "echo-hname" already exists
+[root@m-k8s ~]# kubectl apply -f ~/_Book_k8sInfra/ch3/3.2.4/echo-hname.yaml 
+Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+deployment.apps/echo-hname configured
+[root@m-k8s ~]# kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+echo-hname-7894b67f-5wgfg   1/1     Running   0          10s
+echo-hname-7894b67f-f7vml   1/1     Running   0          2m51s
+echo-hname-7894b67f-jxhkf   1/1     Running   0          2m51s
+echo-hname-7894b67f-jzfnr   1/1     Running   0          10s
+echo-hname-7894b67f-nrdnm   1/1     Running   0          10s
+echo-hname-7894b67f-t6m86   1/1     Running   0          2m51s
+nginx-pod                   1/1     Running   0          12m
+----
+
+* 명령창에 직접 생성하는 경우는 create, 변경 가능성이 있는 복잡한 오브젝트는 apply 사용
+
+=== 자동 복구
+
+image::{image-url6}[자동복구 700]
+
+[source,sh]
+----
+root@nginx-pod:/# ls -l /run/nginx.pid 
+-rw-r--r--. 1 root root 2 Feb 26 08:29 /run/nginx.pid
+root@nginx-pod:/# kill 1
+root@nginx-pod:/# command terminated with exit code 137
+[root@m-k8s ~]# kubectl exec -it nginx-pod -- /bin/bash
+root@nginx-pod:/#  ls -l /run/nginx.pid 
+-rw-r--r--. 1 root root 2 Feb 26 08:48 /run/nginx.pid
+# 생성 시간을 통해 새로 생성된 것을 알 수 있음
+root@nginx-pod:/# 
+
+
+# 자동복구 확인용면화면
+[root@m-k8s ~]# i=1;while true; do sleep 1; echo $((i++)) `curl --silent 172.16.103.129 | grep title` ; done
+....
+34 <title>Welcome to nginx!</title>
+35 <title>Welcome to nginx!</title>
+36 <title>Welcome to nginx!</title>
+37 <title>Welcome to nginx!</title>
+38
+39
+40
+41
+42 <title>Welcome to nginx!</title>
+43 <title>Welcome to nginx!</title>
+44 <title>Welcome to nginx!</title>
+45 <title>Welcome to nginx!</title>
+
+----
+
+
+
 == 3.3 쿠버네티스 연결을 담당하는 서비스
 
-
 == 3.4 알아두면 쓸모 있는 쿠버네티스 오브젝트
-
-
-
-
 
 == References
 
