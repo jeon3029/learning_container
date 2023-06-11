@@ -1,7 +1,7 @@
 = kubernetes 소개
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_1.png
-:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_2.png
-:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_3.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_11.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_22.png
+:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img1_33.png
 
 == 소개
 
