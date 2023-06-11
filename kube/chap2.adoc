@@ -1,0 +1,28 @@
+= Chap2 도커, 쿠베 첫걸음
+
+== 도커 이미지 생성 실행 공유
+
+.HelloWorld 컨테이너 실행
+[source,sh]
+----
+╰─❯ docker run busybox echo "Hello World"
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+434366c88e47: Pull complete
+Digest: sha256:6e494387c901caf429c1bf77bd92fb82b33a68c0e19f6d1aa6a3ac8d27a7049d
+Status: Downloaded newer image for busybox:latest
+Hello World
+----
+
+* busybox : unix 명령파일을 합쳐놓은 단일 실행파일
+
+=== 내부적으로 일어나는 일들
+
+. 이미지가 로컬에 있는 지 확인
+. 없다면 docker hub 레지스트리에서 다운로드
+. 이미지로부터 컨테이너 생성
+. 컨테이너 내부에서 명령어 수행
+
+== 간단한 nodejs application 실행
+
+link:chap2/app.js[app.js]
