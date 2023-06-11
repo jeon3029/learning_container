@@ -1,0 +1,13 @@
+= kube
+
+== Contents
+
+* [Kubernetes in action](https://www.manning.com/books/kubernetes-in-action)
+** https://github.com/luksa/kubernetes-in-action
+
+
+== References
+
+* https://kubernetes.io/
+* https://kubernetes.io/blog/
+* https://www.youtube.com/channel/UCvqbFHwN-nwalWPjPUKpvTA
