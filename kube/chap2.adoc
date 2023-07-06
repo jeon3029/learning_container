@@ -1,4 +1,5 @@
 = Chap2 도커, 쿠베 첫걸음
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img2_1.png
 
 == 도커 이미지 생성 실행 공유
 
@@ -26,3 +27,152 @@ Hello World
 == 간단한 nodejs application 실행
 
 link:chap2/app.js[app.js]
+
+.Dockerfile
+[source,Dockerfile]
+----
+FROM node:7
+ADD app.js /app.js
+ENTRYPOINT ["node", "app.js"]
+----
+
+=== 컨테이너 이미지 생성
+[source,sh]
+----
+docker build -t kubia . 
+----
+
+image::{image-url1}[]
+* 이미지는 레이어로 구성되어 있음. 
+* 서로 다은 이미지가 여러개의 레이어를 공유할 수 있기 때문에 저장과 전송에 효과적임
+
+
+=== 이미지 실행
+
+.빌드한 이미지 실행
+[source,sh]
+----
+$ docker run --name kubia-container -p 8080:8080 -d kubia
+$ curl localhost:8080
+# You've hit 051d2b9bf6a2
+$ docker ps
+CONTAINER ID   IMAGE     COMMAND         CREATED              STATUS              PORTS                    NAMES
+051d2b9bf6a2   kubia     "node app.js"   About a minute ago   Up About a minute   0.0.0.0:8080->8080/tcp   kubia-container
+$ docker inspect kubia-container
+# 세부적인 정보
+----
+
+
+=== 이미지 내부 탐색
+
+[source,sh]
+----
+$ docker exec -it kubia-container bash
+root@051d2b9bf6a2:/# ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.2  1.2 786928 100880 ?       Ssl  10:01   0:01 /usr/bin/qemu-x86_64 /usr/local/bin/node node app.js
+root        13  0.1  0.1 169256 12464 pts/0    Ssl  10:06   0:00 /usr/bin/qemu-x86_64 /bin/bash bash
+root        20  0.0  0.1 166168  8672 ?        Rl+  05:06   0:00 ps aux
+----
+
+* -i : stdin 오픈 생태로 유지
+* -t : tty(터미널) 를 할당
+
+=== 컨테이너 중지와 삭제
+
+[source,sh]
+----
+╰─❯ docker stop kubia-container
+kubia-container
+╰─❯ docker rm kubia-container
+kubia-container
+----
+
+=== 이미지 레지스트리에 푸시
+
+[source,sh]
+----
+$ docker tag kubia jeon3029/kubia
+$ docker push jeon3029/kubia
+$ docker run -p 8080:8080 -d jeon3029/kubia
+----
+
+* 어디서든 동일한 환경으로 실행 가능
+
+
+
+== 쿠버네티스 클러스터 설치
+
+=== minikube 설치
+
+* https://github.com/kubernetes/minikube
+
+.minikube 설치
+[source,sh]
+----
+$ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
+$ sudo install minikube-darwin-arm64 /usr/local/bin/minikube
+$ brew install --cask virtualbox
+$ minikube start
+# 완료까지 1분 이상 걸린다
+----
+
+
+* 클러스터 작동 여부 확인
+
+[source,sh]
+----
+$ kubectl cluster-info
+----
+
+=== 구글 쿠버네티스 엔진 활용한 관리형 클러스터 활성화
+
+* gke 같은 관리형 솔루션을 사용하면 클러스터를 잘못 설정하여 동작하지 않거나 부분동작하는 경우를 없앨 수 있다.
+
+[source,sh]
+----
+$ gcloud components install kubectl
+$ gcloud container clusters create my-cluster --num-nodes=3 --zone=us-central1-a
+$ kubectl get nodes
+NAME                                        STATUS   ROLES    AGE   VERSION
+gke-my-cluster-default-pool-aebf6368-8188   Ready    <none>   35s   v1.25.8-gke.500
+gke-my-cluster-default-pool-aebf6368-f6hz   Ready    <none>   35s   v1.25.8-gke.500
+gke-my-cluster-default-pool-aebf6368-ggsc   Ready    <none>   36s   v1.25.8-gke.500
+$ kubectl describe node gke-my-cluster-default-pool-aebf6368-8188
+#....contents
+
+----
+
+== kubernetes 에 어플리케이션 구동하기
+
+[source,sh]
+----
+$ k create deploy kubia-deploy --image=jeon3029/kubia
+deployment.apps/kubia-deploy created
+
+$  k get deploy
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+kubia-deploy   1/1     1            1           4s
+
+$  k scale deploy kubia-deploy --replicas=3
+deployment.apps/kubia-deploy scaled
+
+$   k get po
+NAME                            READY   STATUS              RESTARTS   AGE
+kubia-deploy-84477b598d-hxkzz   1/1     Running             0          20s
+kubia-deploy-84477b598d-jxqb2   0/1     ContainerCreating   0          20s
+kubia-deploy-84477b598d-w69wg   1/1     Running             0          44s
+
+$  k expose deploy kubia-deploy --type=LoadBalancer --name kubia-http --port=8080
+service/kubia-http exposed
+
+$ curl 34.171.62.18:8080
+You've hit kubia-deploy-84477b598d-hxkzz
+$ curl 34.171.62.18:8080
+You've hit kubia-deploy-84477b598d-w69wg
+$ curl 34.171.62.18:8080
+You've hit kubia-deploy-84477b598d-jxqb2
+----
+
+
+
