@@ -1,5 +1,6 @@
 = Chap2 도커, 쿠베 첫걸음
 :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img2_1.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img2_2.png
 
 == 도커 이미지 생성 실행 공유
 
@@ -174,5 +175,5 @@ $ curl 34.171.62.18:8080
 You've hit kubia-deploy-84477b598d-jxqb2
 ----
 
-
+image::{image-url2}[]
 

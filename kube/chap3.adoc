@@ -1,6 +1,89 @@
 = Chap3 쿠버네티스에서 컨테이너 실행
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img2_1.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_1.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_2.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_3.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_4.png
 
-== 
+== 파드
 
+.파드
+* 여러 컨테이너를 가지고 있을 경우에, 모든 컨테이너는 항상 하나의 워커 노드에서 실행되며 여러 워커 노드에 걸쳐 실행되지 않는다.
+* 파드 안의 컨테이너가 동일한 네트워크 네임스페이스에서 실행
+** 동일한 파드 안 컨테이너에서 실행 중인 프로세스가 같은 포트 번호를 사용하지 않도록 주의
+* 모든 파드는 다른 파드의 IP 주소를 사용해 접근하는 것이 가능
 
+image::{image-url1}[]
+
+image::{image-url2}[]
+
+== 파드에서 컨테이너의 적절한 구성
+
+파드를 각각 별도의 머신으로 생각할 수 있지만, 파드는 특정한 애플리케이션만을 호스팅
+
+TIP: 프론트엔드와 백엔드가 같은 파드에 있다면, 둘은 항상 같은 노드에서 실행된다. 만약에 두 노드를 가진 쿠버네티스 클러스터가 있고 이 파드 하나만 있다면, 워커 노드 하나만 사용하고 두 번째 노드에서 이용할 수 있는 컴퓨팅 리소스(CPU와 메모리)를 활용하지 않고 그냥 버리게 된다
+
+여러 컨테이너를 단일 파드에 넣는 주된 이유는 애플리케이션이 하나의 주요 프로세스와 하나 이상의 보안 프로세스로 구성된 경우이다.
+
+image::{image-url3}[]
+
+== 레이블을 이용한 파드 구성
+
+레이블(labels)을 통해 파드와 기타 다른 쿠버네티스 오브젝트의 조직화
+
+image::{image-url4}[]
+
+=== 특정 노드에 파드 스케줄링
+
+[source,sh]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-gpu
+spec:
+  nodeSelector:
+    gpu: "true"
+....
+----
+
+비슷하게 특정 노드에 파드를 스케쥴링 하는 방식도 가능(노드가 오프라인일 때 스케쥴링 되지 않을 수 있음)
+
+== 네임스페이스를 사용한 리소스 그룹화
+
+쿠버네티스는 오브젝트를 네임스페이스로 그룹화
+
+* 프로세스격리가 아님
+
+여러 네임스페이스를 사용하면 많은 구성 요소를 가진 복잡한 시스템을 좀 더 작은 개별 그룹으로 분리할 수 있다.
+
+네임스페이스를 사용해 서로 관계없는 리소스를 겹치지 않는 그룹으로 분리할 수 있다.
+
+-> 네임스페이스는 다른 팀들이 동일한 클러스터를 별도 클러스터를 사용하는 것처럼 이용할 수 있다.
+
+[source,sh]
+----
+$ k get po --namespace kube-system
+NAME                                                   READY   STATUS    RESTARTS   AGE
+event-exporter-gke-755c4b4d97-rbshl                    2/2     Running   0          12d
+fluentbit-gke-95nrt                                    2/2     Running   0          12d
+fluentbit-gke-bkbdd                                    2/2     Running   0          12d
+fluentbit-gke-t67g8                                    2/2     Running   0          12d
+gke-metrics-agent-8tmbg                                2/2     Running   0          12d
+gke-metrics-agent-97bm5                                2/2     Running   0          12d
+gke-metrics-agent-fj8tb                                2/2     Running   0          12d
+konnectivity-agent-54bc6f8ccb-59bbs                    1/1     Running   0          12d
+konnectivity-agent-54bc6f8ccb-jhp6f                    1/1     Running   0          12d
+konnectivity-agent-54bc6f8ccb-jtcvw                    1/1     Running   0          12d
+konnectivity-agent-autoscaler-7dc78c8c9-5xl2c          1/1     Running   0          12d
+kube-dns-5b5dfcd97b-ctv2k                              4/4     Running   0          12d
+kube-dns-5b5dfcd97b-jxvn7                              4/4     Running   0          12d
+kube-dns-autoscaler-5f56f8997c-hl9wh                   1/1     Running   0          12d
+kube-proxy-gke-my-cluster-default-pool-aebf6368-9649   1/1     Running   0          12d
+kube-proxy-gke-my-cluster-default-pool-aebf6368-c3gl   1/1     Running   0          12d
+kube-proxy-gke-my-cluster-default-pool-aebf6368-e55h   1/1     Running   0          12d
+l7-default-backend-676d84669b-grw6t                    1/1     Running   0          12d
+metrics-server-v0.5.2-67864775dc-k4krr                 2/2     Running   0          12d
+pdcsi-node-5vkv4                                       2/2     Running   0          12d
+pdcsi-node-gsxrw                                       2/2     Running   0          12d
+pdcsi-node-sxhrj                                       2/2     Running   0          12d
+----
