@@ -1,0 +1,108 @@
+= Chap5 Service
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_1.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_2.png
+:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_3.png
+:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_4.png
+:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_5.png
+
+파드 그룹에 지속적인 단일 접점을 만들려고 할 때 생성
+
+
+image::{image-url1}[]
+
+서비스 연결은 서비스 뒷단의 모든 파드로 로드밸런싱 된다.
+
+image::{image-url1}[]
+
+== 서비스 생성
+
+서비스 안의 특정 pod 에 요청을 보내고 싶다면?
+
+[source,sh]
+----
+$ kubectl exec cslee-55ngi --curl -s http://10.111.241.253
+You’ve hit cslee-55ngi
+----
+
+== Service endpoints
+
+서비스는 파드에 직접 연결되지 않는다. 
+-> 엔드포인트 리소스가 그 사이에 있다
+[source,sh]
+----
+$ kubectl describe svc kubia
+...
+EntryPoint : 10.108.1.4:8080,10.108.2.5:8080,10.108.2.6:8080
+----
+
+
+== 서비스 expose 하는 방법
+
+1. NodePort
+image::{image-url3}[]
+
+방화벽 설정 필요할 수 있음
+
+2. LoadBalancer
+image::{image-url4}[]
+
+로드밸런서는 공개적으로 액세스 가능한 고유한 IP 주소를 가지며 모든 연결을 서비스로 전달
+: NodePort와 달리 방화벽을 설정할 필요가 없다
+
+3. Ingress
+
+IP 주소로 수십 개의 서비스에 접근이 가능하도록 지원
+: Google Cloud Load Balancer와 Nginx, Contour, Istio 등과 같은 많은 Ingress 컨트롤러 타입이 있다
+
+[source,yaml]
+----
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubia
+spec:
+  rules:
+  - host: kubia.example.com
+    http:
+      paths:
+      - path: /kubia
+        backend:
+          serviceName: kubia
+          servicePort: 80
+      - path: /foo
+        backend:
+          serviceName: bar
+          servicePort: 80
+----
+
+image::{image-url5}[]
+
+=== TLS traffic
+
+[source,yaml]
+----
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubia
+spec:
+  tls:
+  - hosts: 
+    - kubia.example.com
+    secretName: tls-secret
+  rules:
+  - host: kubia.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: kubia-nodeport
+          servicePort: 80
+
+----
+
+[source,sh]
+----
+$ kubectl create secret tls tls-secret --cert=tls.cert --key=tls.key
+secret "tls-secret" created
+----

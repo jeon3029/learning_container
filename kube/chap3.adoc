@@ -1,8 +1,8 @@
 = Chap3 쿠버네티스에서 컨테이너 실행
 :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_1.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_2.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_3.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_4.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_2.png
+:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_3.png
+:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img3_4.png
 
 == 파드
 

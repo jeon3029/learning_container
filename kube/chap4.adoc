@@ -1,0 +1,87 @@
+= Chap4 관리되는 파드 배포
+
+파드가 노드에 스케줄링되면 kubelet은 파드의 컨테이너를 실행하고 파드가 존재하는 한 컨테이너가 계속 실행
+-> crash 가 발생하면 컨테이너를 재시작  
+
+하지만 java OOM?
+
+파드의 상태를 체크하는 3가지 방법
+
+1. HTTP GET probe
+2. A TCP Socket probe 
+3. An Exec probe
+
+== HTTP GET probe
+
+[source,yaml]
+----
+apiVersion: v1
+kind: pod
+metadata:
+  name: kubia-liveness
+spec:
+  containers:
+  - image: luksa/kubia-unhealthy
+    name: kubia
+    livenessProbe:
+      httpGet:
+        path: /
+port: 8080
+----
+
+liveness probe 를 사용할 땐 체크만 할 수 있도록.
+->/health 로 요청을 보내 확인하는 방법
+
+
+==  ReplicaSet -> ReplicationController?
+
+ReplicaSet 이 label selecting 하는데에 장점이 있다.
+ReplicationController 는 특정 label 이 있는지만 확인
+<-> ReplicaSet 은 value 까지 체크 가능 
+
+[source,yaml]
+----
+selector:
+  matchExpressions:
+    - key: app
+      operator: In
+      values:
+- kubia
+----
+
+
+== Single completable task(batch job)
+
+
+.Dockerfile
+[source,yaml]
+----
+FROM busybox
+ENTRYPOINT echo "$(date) Batch job starting"; sleep 120; echo "$(date) Finished succesfully"
+----
+
+2분간 수행하는 잡 샘플
+
+[source,yaml]
+----
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: batch-job-every-fifteen-minutes
+spec:
+  schedule: "0,15,30,45 * * * *"
+  #startingDeadlineSeconds: 15
+  # 이시간이 지나면 그냥 fail 처리
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: main
+            image: luksa/batch-job
+
+----
