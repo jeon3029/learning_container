@@ -3,7 +3,7 @@
 :image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_2.png
 :image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_3.png
 :image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_4.png
-:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_5.png
+:image-url5: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img5_5.png
 
 파드 그룹에 지속적인 단일 접점을 만들려고 할 때 생성
 
