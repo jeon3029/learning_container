@@ -8,7 +8,7 @@
 * Kubernetes Volume은 파드의 구성 요소로 컨테이너와 동일하게 파드 스펙에서 정의
 * Volume 는 각 파드의 모든 컨테이너에서 사용ㅇ 가능하지만 접근하려는 컨테이너에서 각각 마운트 돼야 함.
 
-image::{image-url1}[]
+image::{image-url1}[width=300]
 
 == 사용 가능한 볼륨 유형
 
