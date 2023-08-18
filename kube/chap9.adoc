@@ -1,0 +1,134 @@
+= Deployment
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_1.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_2.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_3.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_4.png
+:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_5.png
+
+Deployment를 사용하지 않을 때 / 사용했을 때의 어플리케이션 배포 방법의 차이
+
+
+== Pod Application Update
+
+image::{image-url1}[width=300]
+
+.파드를 업데이트 하는 방법
+* 기존 파드를 삭제하고 새로운 파드를 생성. 
+** 일시적인 서비스 중지 타임이 있음. 
+
+image::{image-url2}[width=300]
+
+* 새로운 파드를 시작하고, 기존 파드를 삭제한다. 
+** 서비스 중지 타임은 없으나, 일시적으로 리소스가 더 필요함. 
+
+image::{image-url3}[width=300]
+
+* 롤링 업데이트 
+** 파드의 버전을 하나씩 서서히 변경해가는 것
+** 명령어를 통한 rolling update 는 권장하지 않음
+
+image::{image-url4}[width=300]
+
+
+
+== Deployment 사용 하여 선언적으로(Decalrative) 업데이트
+
+Deployment는 롤링 업데이트를 편리하기 위해서 만들어진 하이 레벨 오브젝트
+
+
+.Deployment를 이용해 Application을 업데이트 하는 방법
+* Deployment에 정의된 파드 Template을 수정
+** 파드 Template이 정의되면, 새로운 Pod Template Hash가 생긴다. 이 Hash 값을 가진 ReplicaSet이 만들어지면서 각 파드의 상태가 업데이트
+** Rolling Update : 하나 제거 + 새 파드 추가
+** Recreate : 서비스 다운 타임을 허용할 때 가능
+
+=== Rolling update sample
+
+[source,sh]
+----
+$ k set image deployment kubia nodejs=luksa/kubia:v2
+----
+
+[source,text]
+----
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v2 running in pod kubia-67d47c859c-bp8rd
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v2 running in pod kubia-67d47c859c-9g9bm
+This is v1 running in pod kubia-87857b89b-w4m76
+This is v2 running in pod kubia-67d47c859c-fnv8w
+This is v2 running in pod kubia-67d47c859c-fnv8w
+This is v2 running in pod kubia-67d47c859c-bp8rd
+This is v2 running in pod kubia-67d47c859c-9g9bm
+----
+
+=== Rollout 속도 제어
+[source,yaml]
+----
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
+----
+.maxSurge
+* Desired Replicas를 초과해서 있을 수 있는 최대 파드 개수
+.maxUnavailable
+* Desired Replicas에서 서비스 불가능한 상태로 있을 수 있는 최대 파드 개수
+
+image::{image-url5}[width=300]
+
+=== Rollback
+
+[source,sh]
+----
+$ k rollout history deploy kubia
+deployment.apps/kubia
+REVISION  CHANGE-CAUSE
+4         kubectl create --filename=kubia-deployment-v1.yaml --record=true
+5         kubectl create --filename=kubia-deployment-v1.yaml --record=true
+6         kubectl create --filename=kubia-deployment-v1.yaml --record=true
+
+# 특정 버전
+$ kubectl rollout undo deploy kubia --to-revision=5
+# 직전 버전
+$ kubectl rollout undo deploy kubia
+----
+
+== Canary deployment
+
+시간을 가지고 모니터링을 하면서 파드가 문제가 없는 경우, 나머지를 모두 배포
+
+[source,sh]
+----
+# rollout 일시중지
+$ kubectl rollout pause deployment kubia
+
+# rollout 재개
+$ kubectl rollout resume deployment kubia
+----
+
+== 잘못된 버전의 롤아웃 방지 
+
+* minReadySeconds는 적절한 시간이 설정되어야한다
+[source,yaml]
+----
+spec:
+      containers:
+      - image: luksa/kubia:v3
+        name: nodejs
+        readinessProbe:
+          periodSeconds: 1
+          httpGet:
+            path: /
+            port: 8080
+----
