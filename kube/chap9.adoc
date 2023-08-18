@@ -1,9 +1,9 @@
 = Deployment
 :image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_1.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_2.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_3.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_4.png
-:image-url1: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_5.png
+:image-url2: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_2.png
+:image-url3: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_3.png
+:image-url4: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_4.png
+:image-url5: https://cdn.jsdelivr.net/gh/jeon3029/learning_container@master/kube/img/img9_5.png
 
 Deployment를 사용하지 않을 때 / 사용했을 때의 어플리케이션 배포 방법의 차이
 
